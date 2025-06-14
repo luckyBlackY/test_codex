@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>丸罰ゲーム</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            margin-top: 0;
+            color: #4a5568;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #2d3748;
+            min-height: 30px;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 20px;
+            background: #2d3748;
+            border-radius: 10px;
+            padding: 4px;
+        }
+        
+        .cell {
+            background: white;
+            border: none;
+            font-size: 3em;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cell:hover {
+            background: #f7fafc;
+            transform: scale(1.05);
+        }
+        
+        .cell:disabled {
+            cursor: default;
+        }
+        
+        .cell:disabled:hover {
+            transform: none;
+        }
+        
+        .x {
+            color: #e53e3e;
+        }
+        
+        .o {
+            color: #3182ce;
+        }
+        
+        .reset-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .winner {
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>丸罰ゲーム</h1>
+        <div id="status" class="status">プレイヤー ○ の番です</div>
+        <div id="board" class="board"></div>
+        <button id="resetBtn" class="reset-btn">リセット</button>
+    </div>
+
+    <script>
+        class TicTacToe {
+            constructor() {
+                this.board = Array(9).fill('');
+                this.currentPlayer = 'O';
+                this.gameActive = true;
+                this.boardElement = document.getElementById('board');
+                this.statusElement = document.getElementById('status');
+                this.resetBtn = document.getElementById('resetBtn');
+                
+                this.winPatterns = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8], // 横
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8], // 縦
+                    [0, 4, 8], [2, 4, 6]             // 斜め
+                ];
+                
+                this.init();
+            }
+            
+            init() {
+                this.createBoard();
+                this.resetBtn.addEventListener('click', () => this.resetGame());
+            }
+            
+            createBoard() {
+                this.boardElement.innerHTML = '';
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('button');
+                    cell.className = 'cell';
+                    cell.dataset.index = i;
+                    cell.addEventListener('click', (e) => this.handleCellClick(e));
+                    this.boardElement.appendChild(cell);
+                }
+            }
+            
+            handleCellClick(e) {
+                const index = parseInt(e.target.dataset.index);
+                
+                if (this.board[index] !== '' || !this.gameActive) {
+                    return;
+                }
+                
+                this.board[index] = this.currentPlayer;
+                this.updateDisplay();
+                
+                if (this.checkWin()) {
+                    this.statusElement.textContent = `プレイヤー ${this.currentPlayer} の勝利！`;
+                    this.statusElement.classList.add('winner');
+                    this.gameActive = false;
+                } else if (this.checkDraw()) {
+                    this.statusElement.textContent = '引き分け！';
+                    this.gameActive = false;
+                } else {
+                    this.currentPlayer = this.currentPlayer === 'O' ? 'X' : 'O';
+                    this.statusElement.textContent = `プレイヤー ${this.currentPlayer} の番です`;
+                }
+            }
+            
+            updateDisplay() {
+                const cells = document.querySelectorAll('.cell');
+                cells.forEach((cell, index) => {
+                    cell.textContent = this.board[index];
+                    cell.className = 'cell';
+                    if (this.board[index] === 'O') {
+                        cell.classList.add('o');
+                    } else if (this.board[index] === 'X') {
+                        cell.classList.add('x');
+                    }
+                    
+                    if (this.board[index] !== '') {
+                        cell.disabled = true;
+                    }
+                });
+            }
+            
+            checkWin() {
+                return this.winPatterns.some(pattern => {
+                    const [a, b, c] = pattern;
+                    return this.board[a] && 
+                           this.board[a] === this.board[b] && 
+                           this.board[a] === this.board[c];
+                });
+            }
+            
+            checkDraw() {
+                return this.board.every(cell => cell !== '');
+            }
+            
+            resetGame() {
+                this.board = Array(9).fill('');
+                this.currentPlayer = 'O';
+                this.gameActive = true;
+                this.statusElement.textContent = 'プレイヤー ○ の番です';
+                this.statusElement.classList.remove('winner');
+                this.createBoard();
+            }
+        }
+        
+        // ゲーム開始
+        document.addEventListener('DOMContentLoaded', () => {
+            new TicTacToe();
+        });
+    </script>
+</body>
+</html>
