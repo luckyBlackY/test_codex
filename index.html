@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>丸罰ゲーム</title>
+    <title>OXゲーム</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -116,8 +116,8 @@
 </head>
 <body>
     <div class="game-container">
-        <h1>丸罰ゲーム</h1>
-        <div id="status" class="status">プレイヤー ○ の番です</div>
+        <h1>OXゲーム</h1>
+        <div id="status" class="status">プレイヤー O の番です</div>
         <div id="board" class="board"></div>
         <button id="resetBtn" class="reset-btn">リセット</button>
     </div>
@@ -214,7 +214,7 @@
                 this.board = Array(9).fill('');
                 this.currentPlayer = 'O';
                 this.gameActive = true;
-                this.statusElement.textContent = 'プレイヤー ○ の番です';
+                this.statusElement.textContent = 'プレイヤー O の番です';
                 this.statusElement.classList.remove('winner');
                 this.createBoard();
             }
